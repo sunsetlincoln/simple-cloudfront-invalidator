@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.homepage      = 'https://github.com/laurilehmijoki/simple-cloudfront-invalidator'
 
   s.add_dependency 'colored', '= 1.2'
+  s.add_dependency 'nokogiri'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'vcr'

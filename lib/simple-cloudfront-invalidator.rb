@@ -33,6 +33,13 @@ module SimpleCloudfrontInvalidator
                :invalidated_items_count => items.length }
     end
 
+    def status
+      res = sign_and_call(
+        "https://cloudfront.amazonaws.com/2012-05-05/distribution/#{@distribution}/invalidation?MaxItems=3",
+        Net::HTTP::Get)
+      return { :text_report => create_status_report(res.body) }
+    end
+
     private
 
     def sign_and_call(url, method, body = nil)
@@ -65,6 +72,17 @@ module SimpleCloudfrontInvalidator
         report << "  #{item}".yellow
       end
       report << "succeeded".green
+    end
+
+    def create_status_report(doc)
+      report = []
+      invalidations = Nokogiri::XML(doc).css('InvalidationList Items InvalidationSummary')[0..2]
+      max_id_length = invalidations.css('Id').map{|i| i.text.size}.max
+      invalidations.each do |i|
+        line = "#{i.css('Id').text.rjust(max_id_length, ' ')}  #{i.css('Status').text}"
+        report << (i.css('Status').text == "Completed" ? line.green : line.yellow)
+      end
+      report
     end
 
     def prefix_with_slash(file_names)
